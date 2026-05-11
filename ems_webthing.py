@@ -181,7 +181,7 @@ def run_server(port: int, ems_uri: str, token: str):
         ems_uri = ems_uri + '/'
 
     boiler = BoilerThing(Boiler(ems_uri + "api/boiler", token))
-    server = WebThingServer(MultipleThings([boiler], 'ems_devices'), port=port, disable_host_validation=True)
+    server = WebThingServer(MultipleThings([boiler], 'boiler'), port=port, disable_host_validation=True)
     try:
         logging.info('starting the server http://localhost:' + str(port) + " (ems=" + ems_uri + ")")
         server.start()
