@@ -57,8 +57,13 @@ class Boiler:
 
 
     def set_selected_flow_temperature(self, temp: float):
-        # todo
-        self.__notify_listener()
+        update_uri = self.uri + "selflowtemp"
+        resp = requests.post(update_uri,
+                             headers={"Authorization": "Bearer " + self.token},
+                             json={"cmd": "selflowtemp", "data": temp})
+        resp.raise_for_status()
+        logging.info("selflowtemp updated to " + str(temp))
+        self.__fetch_data()
 
     def set_dhw_selected_temp(self, temp: int):
         update_uri = self.uri + "dhw/seltemp"
@@ -79,8 +84,13 @@ class Boiler:
         self.__fetch_data()
 
     def set_dhw_activated(self, on: bool):
-        # todo
-        self.__notify_listener()
+        update_uri = self.uri + "dhw/activated"
+        resp = requests.post(update_uri,
+                             headers={"Authorization": "Bearer " + self.token},
+                             json={"cmd": "activated", "data": on})
+        resp.raise_for_status()
+        logging.info("dhw/activated updated to " + str(on))
+        self.__fetch_data()
 
 '''
 http://192.168.1.82/api/boiler

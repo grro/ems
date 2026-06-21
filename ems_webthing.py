@@ -1,7 +1,5 @@
-import sys
-import logging
 import tornado.ioloop
-from webthing import (MultipleThings, Property, Thing, Value, WebThingServer)
+from webthing import (Property, Thing, Value)
 from ems import Boiler
 
 
@@ -175,28 +173,3 @@ class BoilerThing(Thing):
         self.dhw_flow_temp_offset.notify_of_external_update(self.boiler.dhw_flow_temp_offset)
 
 
-def run_server(port: int, ems_uri: str, token: str):
-    ems_uri = ems_uri.strip()
-    if not ems_uri.endswith("/"):
-        ems_uri = ems_uri + '/'
-
-    boiler = BoilerThing(Boiler(ems_uri + "api/boiler", token))
-    server = WebThingServer(MultipleThings([boiler], 'boiler'), port=port, disable_host_validation=True)
-    try:
-        logging.info('starting the server http://localhost:' + str(port) + " (ems=" + ems_uri + ")")
-        server.start()
-    except KeyboardInterrupt:
-        logging.info('stopping the server')
-        server.stop()
-        logging.info('done')
-
-
-if __name__ == '__main__':
-    try:
-        logging.basicConfig(format='%(asctime)s %(name)-20s: %(levelname)-8s %(message)s', level=logging.INFO, datefmt='%Y-%m-%d %H:%M:%S')
-        logging.getLogger('tornado.access').setLevel(logging.ERROR)
-        logging.getLogger('urllib3.connectionpool').setLevel(logging.WARNING)
-        run_server(int(sys.argv[1]), sys.argv[2], sys.argv[3])
-    except Exception as e:
-        logging.error(str(e))
-        raise e

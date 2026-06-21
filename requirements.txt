@@ -1,2 +1,4 @@
+requests>=2.32.5
 webthing>=0.15.0
-requests>=2
+fastmcp==3.3.1
+zeroconf>=0.148.0
