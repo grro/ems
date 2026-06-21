@@ -72,25 +72,25 @@ class EmsMCPServer:
         self.loop = asyncio.new_event_loop()
         self.last_state: Dict[str, bool] = dict()
         self.writable_properties = (
-            "selected_flow_temperature",
-            "dhw_selected_temp",
-            "dhw_flow_temp_offset",
-            "dhw_activated",
+            "dhw_selected_temp"
         )
 
 
         @self.mcp.tool(name="boiler_overview")
         def get_boiler_overview() -> dict:
             """
-            Returns a compact, real-time overview of the boiler state.
+            Return a real-time boiler snapshot as JSON.
 
-            Each line is marked with:
-              - [RW]: writable via set_boiler_property
-              - [RO]: read-only (status only)
+            The payload contains ``properties`` with one object per field.
+            Each field may contain:
+              - ``value``: raw current value
+              - ``unit``: engineering unit (for temperatures, ``C``)
+              - ``status``: human-readable bool state (``ON``/``OFF``)
+              - ``writable``: ``True`` when writable via ``set_boiler_property``
 
             Returns:
-                dict: A JSON-serializable boiler state payload including values,
-                      writable flags and units where applicable.
+                dict: ``{"ok": True, "properties": {...}}`` on success,
+                otherwise ``{"ok": False, "error": "..."}``.
             """
             try:
                 boiler = self.boiler
@@ -165,15 +165,22 @@ class EmsMCPServer:
         @self.mcp.tool(name="set_boiler_property")
         def set_boiler_property(property_name: str, value: str) -> dict:
             """
-            Sets a writable boiler property via one parameterized endpoint.
+            Set one writable boiler property via a generic MCP endpoint.
 
-            Supported properties:
-              - selected_flow_temperature (float)
-              - dhw_selected_temp (int)
-              - dhw_flow_temp_offset (int)
-              - dhw_activated (bool: true/false, on/off, 1/0)
+            Args:
+                property_name (str): Target property key.
+                value (str): Value as text. Parsing depends on the property and
+                    is validated before writing.
 
-            See boiler_overview for [RW]/[RO] status hints.
+            Returns:
+                dict: ``{"ok": True, "property": ..., "value": ...}`` on
+                success, otherwise ``{"ok": False, "error": "..."}``.
+
+            Notes:
+                - For boolean properties, accepted values are
+                  ``true/false``, ``on/off``, ``1/0``, ``yes/no``.
+                - For ``dhw_activated``, the response also includes
+                  ``status`` as ``ON`` or ``OFF``.
             """
             try:
                 supported_properties = self.writable_properties
